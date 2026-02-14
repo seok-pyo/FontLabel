@@ -4,14 +4,24 @@
   "description": "Your Figma Plugin",
   "main": "code.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "build-figma-plugin --typecheck --minify",
     "lint": "eslint --ext .ts,.tsx --ignore-pattern node_modules .",
     "lint:fix": "eslint --ext .ts,.tsx --ignore-pattern node_modules --fix .",
-    "watch": "npm run build -- --watch"
+    "watch": "build-figma-plugin --typecheck --watch"
   },
-  "author": "",
+  "figma-plugin": {
+    "editorType": [
+      "figma"
+    ],
+    "name": "FontLabel",
+    "main": "src/main.ts",
+    "ui": "src/ui.tsx"
+  },
+  "author": "hongseokpyo",
   "license": "",
   "devDependencies": {
+    "@create-figma-plugin/build": "^4.0.3",
+    "@create-figma-plugin/tsconfig": "^4.0.3",
     "@figma/eslint-plugin-figma-plugins": "*",
     "@figma/plugin-typings": "*",
     "@typescript-eslint/eslint-plugin": "^6.12.0",
@@ -40,5 +50,10 @@
         }
       ]
     }
+  },
+  "dependencies": {
+    "@create-figma-plugin/ui": "^4.0.3",
+    "@create-figma-plugin/utilities": "^4.0.3",
+    "preact": "^10.28.3"
   }
 }

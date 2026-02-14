@@ -1,18 +1,1 @@
-{
-  "name": "FontLabel",
-  "id": "1604143132489867372",
-  "api": "1.0.0",
-  "main": "code.js",
-  "capabilities": [],
-  "enableProposedApi": false,
-  "documentAccess": "dynamic-page",
-  "editorType": [
-    "figma"
-  ],
-  "ui": "ui.html",
-  "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
-  }
-}
+{"api":"1.0.0","editorType":["figma"],"id":"font-label","name":"FontLabel","main":"build/main.js","ui":"build/ui.js"}
