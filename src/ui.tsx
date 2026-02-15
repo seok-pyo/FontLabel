@@ -1,40 +1,48 @@
-import { h } from "preact";
-import { useState } from "preact/hooks";
-import { render, Button, TextboxNumeric } from "@create-figma-plugin/ui";
+import { h, Fragment } from "preact";
+import { useState, useRef, useEffect } from "preact/hooks";
+import {
+  render,
+  Button,
+  TextboxNumeric,
+  TextboxAutocomplete,
+} from "@create-figma-plugin/ui";
 import styles from "./styles.module.css";
+import Folder from "./components/Folder";
 
 function Plugin() {
-  const [count, setCount] = useState("5");
+  const [value, setValue] = useState("");
+  const [fonts, setFonts] = useState<Record<string, string[]>>({});
+
+  useEffect(() => {
+    window.onmessage = (e) => {
+      if (e.data.pluginMessage.type === "fonts") {
+        // const options = e.data.pluginMessage.fonts.map(
+        //   (f: { fontName: { family: string; style: string } }) => ({
+        //     value: f.fontName.family,
+        //     style: f.fontName.style,
+        //   })
+        // );
+        // setFonts(options);
+        setFonts(e.data.pluginMessage.fonts);
+      }
+    };
+    parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
+  }, []);
 
   return (
-    <div>
-      <div class={styles.header}>
-        <h2>RC</h2>
-        <TextboxNumeric value={count} onValueInput={setCount} />
+    <Fragment>
+      <div class={styles.directory}>
+        <TextboxAutocomplete
+          onInput={(e) => {
+            setValue(e.currentTarget.value);
+          }}
+          placeholder="/SOURCES"
+          options={[]}
+          value={value}
+        />
       </div>
-      <Button
-        onClick={() =>
-          parent.postMessage(
-            {
-              pluginMessage: {
-                type: "create-shapes",
-                count: parseInt(count, 10),
-              },
-            },
-            "*"
-          )
-        }
-      >
-        Create
-      </Button>
-      <Button
-        onClick={() =>
-          parent.postMessage({ pluginMessage: { type: "cancel" } }, "*")
-        }
-      >
-        Cancel
-      </Button>
-    </div>
+      <Folder fonts={fonts} />
+    </Fragment>
   );
 }
 
