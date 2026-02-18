@@ -6,10 +6,21 @@ export default function FontCard({
   style,
 }: {
   name: string;
-  style: string;
+  style?: string;
 }) {
   return (
-    <div class={styles.fontCard}>
+    <div
+      class={styles.fontCard}
+      style={{ fontFamily: name }}
+      onClick={() => {
+        parent.postMessage(
+          {
+            pluginMessage: { type: "apply-font", family: name, style: style },
+          },
+          "*"
+        );
+      }}
+    >
       {name} {style}
     </div>
   );

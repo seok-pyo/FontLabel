@@ -1,3 +1,7 @@
+::-webkit-scrollbar {
+  display: none;
+}
+
 .header {
   padding: 20px;
 }
@@ -10,13 +14,20 @@
 }
 
 .directory input {
+  padding-left: 20px;
   border-radius: 0;
   height: 35px;
+  width: 100%;
 }
 
 summary {
+  font-size: 14px;
   list-style: none;
   display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  min-height: 28px;
 }
 
 summary::-webkit-details-marker {
@@ -29,7 +40,7 @@ summary::-webkit-details-marker {
   transition: transform 0.2s;
 }
 
-details[open] > .summary svg {
+details[open] > .summary > :first-child {
   transform: rotate(90deg);
 }
 
@@ -39,14 +50,32 @@ details[open] > .summary svg {
   position: relative;
 }
 
-.fontListContainer button {
-  position: absolute;
-  right: 8px;
-  top: 4px;
+.fontListContainer summary:hover {
+  background-color: #2095f5;
+  padding: 4px 0;
 }
 
-.fontListContainer button svg {
-  transition: transform 0.2ms;
+.plusButton {
+  position: absolute;
+  right: 8px;
+  top: 1px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.closeButton {
+  /* margin-right: 12px; */
+  position: absolute;
+  right: 8px;
+  top: 5px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.plusButton svg {
+  transition: transform 0.2s;
 }
 
 .fontList {
@@ -55,14 +84,22 @@ details[open] > .summary svg {
   width: 350px;
   padding-left: 8px;
   padding-top: 4px;
-  position: relative;
+  /* position: relative; */
+  padding-right: 20px;
 }
 
 .fontCard {
+  font-size: 16px;
   min-height: 35px;
   padding: 4px;
-  padding-top: 8px;
+  margin-left: 16px;
+  display: flex;
+  align-items: center;
 }
+/*
+.fontCard:hover {
+  background-color: #2095f5;
+} */
 
 .popContainer {
   width: 120px;
@@ -88,10 +125,67 @@ details[open] > .summary svg {
   top: 0;
   right: 30px;
   z-index: 200;
+  padding: 8px 8px 0px 8px;
+  background-color: #141414;
+  min-height: 50px;
+  border-radius: 4px;
 }
 
 .labelInput {
-  background-color: #141414;
+  background-color: #2b2b2b;
   padding: 4px;
   padding-left: 12px;
+}
+
+.colorCircle {
+  width: 10px;
+  height: 10px;
+  border-radius: 120px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.makeLabel {
+  background-color: #e5e5e5;
+  color: #222222;
+  padding: 4px;
+  border-radius: 8px;
+  margin: 8px 0px 8px 8px;
+}
+
+.nav {
+  border-radius: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 102px; /* 탭이 3개인 경우 너비는 122px */
+  height: 50px;
+  background-color: #222222;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translate(-50%);
+  z-index: 250;
+}
+
+.labelDefault {
+  min-height: 35px;
+  padding: 4px;
+  /* margin-left: 16px; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* .directory div[class*="menu"] {
+  max-height: 200px !important;
+  border-radius: 0 0 8px 8px;
+} */
+
+.labelDefault:hover {
+  cursor: pointer;
+  background-color: #2095f5;
 }

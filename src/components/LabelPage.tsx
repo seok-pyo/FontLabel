@@ -1,0 +1,83 @@
+import { IconClose16, IconPlus24, IconFolder24 } from "@create-figma-plugin/ui";
+import { h, Fragment } from "preact";
+import styles from "../styles.module.css";
+import FolderItem from "./FolderItem";
+import FontCard from "./FontCard";
+import { useEffect, useState } from "preact/hooks";
+import MakeLabel from "./MakeLabel";
+
+interface Label {
+  id: string;
+  name: string;
+  color: string;
+  fonts: string[];
+}
+export default function LabelPage({
+  labels,
+  fonts,
+  onDelete,
+  onDeleteFont,
+  onCreate,
+}: {
+  labels: Label[];
+  fonts: Record<string, string[]>;
+  onDelete: (id: string) => void;
+  onDeleteFont: (name: string, id: string) => void;
+  onCreate: (name: string, color: string, font?: string | undefined) => void;
+}) {
+  const [showLabel, setShowLabel] = useState(false);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+
+      // if (!document.contains(target)) return; //필요없음.
+      if (target.closest(`.${styles.labelDefault}`)) return;
+      setShowLabel(false);
+    };
+
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
+
+  return (
+    <Fragment>
+      {labels.map((l) => (
+        <FolderItem
+          title={l.name}
+          count={l.fonts.length}
+          items={l.fonts.map((f) => (
+            <FolderItem
+              title={f}
+              count={fonts[f]?.length || 0}
+              items={(fonts[f] || []).map((style) => (
+                <FontCard name={f} style={style} />
+              ))}
+            />
+          ))}
+          preIcon={
+            <span style={{ color: l.color }}>
+              <IconFolder24 />
+            </span>
+          }
+          action={
+            <button class={styles.closeButton} onClick={() => onDelete(l.id)}>
+              <IconClose16 />
+            </button>
+          }
+        />
+      ))}
+      <div class={styles.labelDefault} onClick={() => setShowLabel(true)}>
+        <IconPlus24 />
+        {showLabel && (
+          <MakeLabel
+            onCreate={(name, color) => {
+              onCreate(name, color);
+              setShowLabel(false);
+            }}
+          />
+        )}
+      </div>
+    </Fragment>
+  );
+}
