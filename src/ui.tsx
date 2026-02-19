@@ -1,6 +1,6 @@
 import { h, Fragment } from "preact";
-import { useState, useEffect } from "preact/hooks";
-import { render, TextboxAutocomplete } from "@create-figma-plugin/ui";
+import { useState, useEffect, useRef } from "preact/hooks";
+import { render } from "@create-figma-plugin/ui";
 import styles from "./styles.module.css";
 import Folder from "./components/Folder";
 import Navigation from "./components/Navigation";
@@ -19,6 +19,48 @@ function Plugin() {
   const [fonts, setFonts] = useState<Record<string, string[]>>({});
   const [labels, setLabels] = useState<Label[]>([]);
   const [tab, setTab] = useState<"home" | "label" | "settings">("home");
+  const [previews, setPreviews] = useState<Record<string, string>>({});
+
+  const pendingQueue = useRef<string[]>([]);
+
+  const visibleItems = useRef<Map<string, () => void>>(new Map());
+  const scrollTimer = useRef<number | null>(null);
+  const isScrolling = useRef(false);
+
+  const requestPreview = (family: string, style: string, text?: string) => {
+    const displayKey = text || `${family} ${style}`;
+    const key = text ? `${family}` : `${family}::${style}`;
+
+    if (previews[key]) return;
+    if (pendingQueue.current.includes(key)) return;
+    pendingQueue.current.push(key);
+
+    parent.postMessage(
+      {
+        pluginMessage: {
+          type: "render-preview",
+          family,
+          style: style,
+          text: displayKey,
+          key,
+        },
+      },
+      "*"
+    );
+  };
+
+  const addVisible = (key: string, callback: () => void) => {
+    visibleItems.current.set(key, callback);
+    if (!isScrolling.current) callback();
+  };
+
+  const removeVisible = (key: string) => {
+    visibleItems.current.delete(key);
+  };
+
+  const flushVisible = () => {
+    visibleItems.current.forEach((cb) => cb());
+  };
 
   const onCreate = (name: string, color: string, font?: string) => {
     const newLabels = [
@@ -72,36 +114,38 @@ function Plugin() {
   };
 
   useEffect(() => {
+    const onScroll = () => {
+      isScrolling.current = true;
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
+      scrollTimer.current = setTimeout(() => {
+        isScrolling.current = false;
+        flushVisible();
+      }, 150);
+    };
+    document.addEventListener("scroll", onScroll, true);
+    return () => document.removeEventListener("scroll", onScroll, true);
+  }, []);
+
+  useEffect(() => {
     window.onmessage = (e) => {
       if (e.data.pluginMessage.type === "fonts") {
         setFonts(e.data.pluginMessage.fonts);
-
-        const style = document.createElement("style");
-        let css = "";
-        for (const family of Object.keys(e.data.pluginMessage.fonts)) {
-          css += `@font-face { font-family: "${family}"; src: local("${family}"); }\n`;
-        }
-        style.textContent = css;
-        document.head.appendChild(style);
-
-        const families = Object.keys(e.data.pluginMessage.fonts);
-        const na = families.filter((f) => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d")!;
-          const testStr = "abcdefg";
-          ctx.font = "16px monospace";
-          const fallback = ctx.measureText(testStr).width;
-          ctx.font = `16px "${f}", monospace`;
-          const test = ctx.measureText(testStr).width;
-          return fallback === test; // 폭이 같으면 = 미리보기 안 됨
-        });
-        console.log(`전체: ${families.length}, 미리보기 안됨: ${na.length}`);
-        console.log("안 되는 폰트:", na);
       }
       if (e.data.pluginMessage.type === "labels") {
         setLabels(e.data.pluginMessage.labels);
       }
+
+      if (e.data.pluginMessage.type === "preview") {
+        const { key, image } = e.data.pluginMessage;
+        // const key = `${family}::${style}`;
+        const blob = new Blob([image], {
+          type: "image/svg+xml",
+        });
+        const url = URL.createObjectURL(blob); // 메모리에 있는 데이터를 마치 파일처럼 접근할 수 있는 임시 URL을 생성
+        setPreviews((prev) => ({ ...prev, [key]: url }));
+      }
     };
+
     parent.postMessage({ pluginMessage: { type: "ready" } }, "*");
     parent.postMessage({ pluginMessage: { type: "load-labels" } }, "*");
   }, []);
@@ -136,10 +180,14 @@ function Plugin() {
 
       {tab === "home" && (
         <Folder
+          previews={previews}
+          requestPreview={requestPreview}
           fonts={filteredFonts}
           onCreate={onCreate}
           labels={labels}
           onAddToLabel={onAddToLabel}
+          addVisible={addVisible}
+          removeVisible={removeVisible}
         />
       )}
       {tab === "label" && (
@@ -149,6 +197,10 @@ function Plugin() {
           onDelete={onDelete}
           onDeleteFont={onDeleteFont}
           onCreate={onCreate}
+          previews={previews}
+          requestPreview={requestPreview}
+          addVisible={addVisible}
+          removeVisible={removeVisible}
         />
       )}
       {tab === "settings" && <Settings />}

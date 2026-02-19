@@ -12,11 +12,19 @@ export default function Folder({
   onCreate,
   onAddToLabel,
   labels,
+  previews,
+  requestPreview,
+  addVisible,
+  removeVisible,
 }: {
   fonts: Record<string, string[]>;
   onCreate: (name: string, color: string, font: string) => void;
   onAddToLabel: (name: string, id: string) => void;
   labels: { id: string; name: string; color: string; fonts: string[] }[];
+  previews: Record<string, string>;
+  requestPreview: (family: string, style: string, text?: string) => void;
+  addVisible: (key: string, callback: () => void) => void;
+  removeVisible: (key: string) => void;
 }) {
   const [fontInfo, setFontInfo] = useState("");
   const [mode, setMode] = useState<"makeLabel" | "viewLabel" | null>(null);
@@ -72,8 +80,22 @@ export default function Folder({
                   ))}
               </Fragment>
             }
+            onVisible={() =>
+              addVisible(family, () => requestPreview(family, style[0], family))
+            }
+            onHidden={() => removeVisible(family)}
+            previewSrc={previews[family]}
+            // onVisible={() => requestPreview(family, style[0], family)}
             items={style.map((s) => (
-              <FontCard name={family} style={s} />
+              <FontCard
+                name={family}
+                style={s}
+                previewSrc={previews[`${family}::${s}`]}
+                onVisible={() =>
+                  addVisible(`${family}::${s}`, () => requestPreview(family, s))
+                }
+                onHidden={() => removeVisible(`${family}::${s}`)}
+              />
             ))}
             action={
               <Fragment>

@@ -18,12 +18,20 @@ export default function LabelPage({
   onDelete,
   onDeleteFont,
   onCreate,
+  previews,
+  requestPreview,
+  addVisible,
+  removeVisible,
 }: {
   labels: Label[];
   fonts: Record<string, string[]>;
   onDelete: (id: string) => void;
   onDeleteFont: (name: string, id: string) => void;
   onCreate: (name: string, color: string, font?: string | undefined) => void;
+  previews: Record<string, string>;
+  requestPreview: (family: string, style: string, text?: string) => void;
+  addVisible: (key: string, callback: () => void) => void;
+  removeVisible: (key: string) => void;
 }) {
   const [showLabel, setShowLabel] = useState(false);
 
@@ -31,7 +39,6 @@ export default function LabelPage({
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
 
-      // if (!document.contains(target)) return; //필요없음.
       if (target.closest(`.${styles.labelDefault}`)) return;
       setShowLabel(false);
     };
@@ -50,8 +57,21 @@ export default function LabelPage({
             <FolderItem
               title={f}
               count={fonts[f]?.length || 0}
+              previewSrc={previews[f]}
+              onVisible={() =>
+                addVisible(f, () => requestPreview(f, fonts[f]?.[0], f))
+              }
+              onHidden={() => removeVisible(f)}
               items={(fonts[f] || []).map((style) => (
-                <FontCard name={f} style={style} />
+                <FontCard
+                  name={f}
+                  style={style}
+                  previewSrc={previews[`${f}::${style}`]}
+                  onVisible={() =>
+                    addVisible(`${f}::${style}`, () => requestPreview(f, style))
+                  }
+                  onHidden={() => removeVisible(`${f}::${style}`)}
+                />
               ))}
             />
           ))}
