@@ -12,19 +12,15 @@ export default function Folder({
   onCreate,
   onAddToLabel,
   labels,
-  previews,
   requestPreview,
-  addVisible,
-  removeVisible,
+  subscribePreview,
 }: {
   fonts: Record<string, string[]>;
   onCreate: (name: string, color: string, font: string) => void;
   onAddToLabel: (name: string, id: string) => void;
   labels: { id: string; name: string; color: string; fonts: string[] }[];
-  previews: Record<string, string>;
   requestPreview: (family: string, style: string, text?: string) => void;
-  addVisible: (key: string, callback: () => void) => void;
-  removeVisible: (key: string) => void;
+  subscribePreview: (key: string, cb: (url: string) => void) => void;
 }) {
   const [fontInfo, setFontInfo] = useState("");
   const [mode, setMode] = useState<"makeLabel" | "viewLabel" | null>(null);
@@ -64,10 +60,13 @@ export default function Folder({
   return (
     <Fragment>
       {Object.entries(fonts).map(([family, style]) => (
-        <div class={styles.fontListContainer}>
+        <div key={family} class={styles.fontListContainer}>
           <FolderItem
             title={family}
             count={style.length}
+            previewKey={`${family}`}
+            requestPreview={() => requestPreview(family, style[0], family)}
+            subscribePreview={subscribePreview}
             sufIcon={
               <Fragment>
                 {labels
@@ -80,21 +79,14 @@ export default function Folder({
                   ))}
               </Fragment>
             }
-            onVisible={() =>
-              addVisible(family, () => requestPreview(family, style[0], family))
-            }
-            onHidden={() => removeVisible(family)}
-            previewSrc={previews[family]}
-            // onVisible={() => requestPreview(family, style[0], family)}
             items={style.map((s) => (
               <FontCard
+                key={s}
                 name={family}
                 style={s}
-                previewSrc={previews[`${family}::${s}`]}
-                onVisible={() =>
-                  addVisible(`${family}::${s}`, () => requestPreview(family, s))
-                }
-                onHidden={() => removeVisible(`${family}::${s}`)}
+                previewKey={`${family}::${s}`}
+                subscribePreview={subscribePreview}
+                requestPreview={() => requestPreview(family, s)}
               />
             ))}
             action={

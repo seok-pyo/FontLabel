@@ -18,20 +18,16 @@ export default function LabelPage({
   onDelete,
   onDeleteFont,
   onCreate,
-  previews,
   requestPreview,
-  addVisible,
-  removeVisible,
+  subscribePreview,
 }: {
   labels: Label[];
   fonts: Record<string, string[]>;
   onDelete: (id: string) => void;
   onDeleteFont: (name: string, id: string) => void;
   onCreate: (name: string, color: string, font?: string | undefined) => void;
-  previews: Record<string, string>;
   requestPreview: (family: string, style: string, text?: string) => void;
-  addVisible: (key: string, callback: () => void) => void;
-  removeVisible: (key: string) => void;
+  subscribePreview: (key: string, cb: (url: string) => void) => void;
 }) {
   const [showLabel, setShowLabel] = useState(false);
 
@@ -51,26 +47,28 @@ export default function LabelPage({
     <Fragment>
       {labels.map((l) => (
         <FolderItem
+          key={l.id}
           title={l.name}
           count={l.fonts.length}
+          previewKey={`${l.name}`}
+          requestPreview={() => requestPreview(l.name, l.fonts[0])}
+          subscribePreview={subscribePreview}
           items={l.fonts.map((f) => (
             <FolderItem
+              key={f}
               title={f}
               count={fonts[f]?.length || 0}
-              previewSrc={previews[f]}
-              onVisible={() =>
-                addVisible(f, () => requestPreview(f, fonts[f]?.[0], f))
-              }
-              onHidden={() => removeVisible(f)}
+              previewKey={`${f}`}
+              requestPreview={() => requestPreview(f, (fonts[f] || [])[0], f)}
+              subscribePreview={subscribePreview}
               items={(fonts[f] || []).map((style) => (
                 <FontCard
+                  key={style}
                   name={f}
                   style={style}
-                  previewSrc={previews[`${f}::${style}`]}
-                  onVisible={() =>
-                    addVisible(`${f}::${style}`, () => requestPreview(f, style))
-                  }
-                  onHidden={() => removeVisible(`${f}::${style}`)}
+                  previewKey={`${f}::${style}`}
+                  requestPreview={() => requestPreview(f, style)}
+                  subscribePreview={subscribePreview}
                 />
               ))}
             />

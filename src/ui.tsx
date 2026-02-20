@@ -19,19 +19,37 @@ function Plugin() {
   const [fonts, setFonts] = useState<Record<string, string[]>>({});
   const [labels, setLabels] = useState<Label[]>([]);
   const [tab, setTab] = useState<"home" | "label" | "settings">("home");
-  const [previews, setPreviews] = useState<Record<string, string>>({});
+
+  const previewsRef = useRef<Record<string, string>>({});
+  const listenersRef = useRef<Map<string, Set<(url: string) => void>>>(
+    new Map()
+  );
+
+  console.log(listenersRef);
+  console.log(listenersRef.current);
+
+  const subscribePreview = (key: string, callback: (url: string) => void) => {
+    if (!listenersRef.current.has(key)) {
+      listenersRef.current.set(key, new Set());
+    }
+    listenersRef.current.get(key)!.add(callback);
+
+    if (previewsRef.current[key]) {
+      callback(previewsRef.current[key]);
+    }
+
+    return () => {
+      listenersRef.current.get(key)?.delete(callback);
+    };
+  };
 
   const pendingQueue = useRef<string[]>([]);
-
-  const visibleItems = useRef<Map<string, () => void>>(new Map());
-  const scrollTimer = useRef<number | null>(null);
-  const isScrolling = useRef(false);
 
   const requestPreview = (family: string, style: string, text?: string) => {
     const displayKey = text || `${family} ${style}`;
     const key = text ? `${family}` : `${family}::${style}`;
 
-    if (previews[key]) return;
+    if (previewsRef.current[key]) return;
     if (pendingQueue.current.includes(key)) return;
     pendingQueue.current.push(key);
 
@@ -47,19 +65,6 @@ function Plugin() {
       },
       "*"
     );
-  };
-
-  const addVisible = (key: string, callback: () => void) => {
-    visibleItems.current.set(key, callback);
-    if (!isScrolling.current) callback();
-  };
-
-  const removeVisible = (key: string) => {
-    visibleItems.current.delete(key);
-  };
-
-  const flushVisible = () => {
-    visibleItems.current.forEach((cb) => cb());
   };
 
   const onCreate = (name: string, color: string, font?: string) => {
@@ -114,35 +119,38 @@ function Plugin() {
   };
 
   useEffect(() => {
-    const onScroll = () => {
-      isScrolling.current = true;
-      if (scrollTimer.current) clearTimeout(scrollTimer.current);
-      scrollTimer.current = setTimeout(() => {
-        isScrolling.current = false;
-        flushVisible();
-      }, 150);
-    };
-    document.addEventListener("scroll", onScroll, true);
-    return () => document.removeEventListener("scroll", onScroll, true);
-  }, []);
+    const start = performance.now();
 
-  useEffect(() => {
     window.onmessage = (e) => {
       if (e.data.pluginMessage.type === "fonts") {
-        setFonts(e.data.pluginMessage.fonts);
+        const fontData = e.data.pluginMessage.fonts;
+        setFonts(fontData);
+        requestAnimationFrame(() => {
+          console.log(
+            `[초기 로딩 시간] ${(performance.now() - start).toFixed(1)}ms`
+          );
+        });
       }
       if (e.data.pluginMessage.type === "labels") {
         setLabels(e.data.pluginMessage.labels);
       }
 
       if (e.data.pluginMessage.type === "preview") {
+        // const start = performance.now();
+
         const { key, image } = e.data.pluginMessage;
-        // const key = `${family}::${style}`;
         const blob = new Blob([image], {
           type: "image/svg+xml",
         });
-        const url = URL.createObjectURL(blob); // 메모리에 있는 데이터를 마치 파일처럼 접근할 수 있는 임시 URL을 생성
-        setPreviews((prev) => ({ ...prev, [key]: url }));
+        const url = URL.createObjectURL(blob);
+
+        previewsRef.current[key] = url;
+        listenersRef.current.get(key)?.forEach((cb) => cb(url));
+
+        // requestAnimationFrame(() => {
+        //   const elapsed = performance.now() - start;
+        //   console.log(`[UI Block] ${elapsed.toFixed(1)}`);
+        // });
       }
     };
 
@@ -180,14 +188,12 @@ function Plugin() {
 
       {tab === "home" && (
         <Folder
-          previews={previews}
           requestPreview={requestPreview}
           fonts={filteredFonts}
           onCreate={onCreate}
           labels={labels}
           onAddToLabel={onAddToLabel}
-          addVisible={addVisible}
-          removeVisible={removeVisible}
+          subscribePreview={subscribePreview}
         />
       )}
       {tab === "label" && (
@@ -197,10 +203,8 @@ function Plugin() {
           onDelete={onDelete}
           onDeleteFont={onDeleteFont}
           onCreate={onCreate}
-          previews={previews}
           requestPreview={requestPreview}
-          addVisible={addVisible}
-          removeVisible={removeVisible}
+          subscribePreview={subscribePreview}
         />
       )}
       {tab === "settings" && <Settings />}
