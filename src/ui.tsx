@@ -25,8 +25,7 @@ function Plugin() {
     new Map()
   );
 
-  console.log(listenersRef);
-  console.log(listenersRef.current);
+  const scrollTopRef = useRef(0);
 
   const subscribePreview = (key: string, callback: (url: string) => void) => {
     if (!listenersRef.current.has(key)) {
@@ -124,7 +123,7 @@ function Plugin() {
     window.onmessage = (e) => {
       if (e.data.pluginMessage.type === "fonts") {
         const fontData = e.data.pluginMessage.fonts;
-        setFonts(fontData);
+        setFonts(fontData); // setFonts를 하게 되면 렌더링이 진행되므로, 렌더링 시간에 포함.
         requestAnimationFrame(() => {
           console.log(
             `[초기 로딩 시간] ${(performance.now() - start).toFixed(1)}ms`
@@ -194,6 +193,10 @@ function Plugin() {
           labels={labels}
           onAddToLabel={onAddToLabel}
           subscribePreview={subscribePreview}
+          scrollTop={scrollTopRef.current}
+          onScrollChange={(top) => {
+            scrollTopRef.current = top;
+          }}
         />
       )}
       {tab === "label" && (

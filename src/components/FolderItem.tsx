@@ -24,7 +24,6 @@ export default function FolderItem({
   subscribePreview?: (key: string, cb: (url: string) => void) => void;
   requestPreview?: () => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
   const [src, setSrc] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -34,20 +33,12 @@ export default function FolderItem({
   }, [previewKey]);
 
   useEffect(() => {
-    if (!ref.current) return;
-    if (!ref.current || !requestPreview) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) requestPreview();
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
+    if (!requestPreview) return;
+    requestPreview();
   }, []);
 
   return (
-    <div class={styles.fontListContainer} ref={ref}>
+    <div class={styles.fontListContainer}>
       <details
         class={styles.fontList}
         onToggle={(e) => setOpen(e.currentTarget.open)}

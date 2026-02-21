@@ -14,8 +14,8 @@ export default async function () {
     const BATCH_SIZE = 13;
     processing = true;
     while (previewQueue.length > 0) {
-      const batch = previewQueue.splice(0, BATCH_SIZE);
-
+      // const batch = previewQueue.splice(0, BATCH_SIZE);
+      const batch = previewQueue.splice(-BATCH_SIZE);
       await Promise.all(
         batch.map(async (msg) => {
           const node = figma.createText();
