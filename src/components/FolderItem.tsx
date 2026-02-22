@@ -46,6 +46,7 @@ export default function FolderItem({
         <summary class={styles.summary} style={{ fontFamily: title }}>
           <IconChevronRight16 />
           {preIcon}
+          {/* {title} */}
           {src ? <img src={src} style={{ height: "14px" }} /> : title}
           {sufIcon}
         </summary>

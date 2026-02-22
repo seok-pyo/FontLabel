@@ -9,14 +9,21 @@ import styles from "../styles.module.css";
 
 export default function Navigation({
   setTab,
+  currentTab,
 }: {
   setTab: (page: "home" | "label" | "settings") => void;
+  currentTab: string;
 }) {
   return (
     <div class={styles.nav}>
-      <IconHome24 onClick={() => setTab("home")} />
-      <IconLibrary24 onClick={() => setTab("label")} />
-      {/* <IconAdjust24 onClick={() => setTab("settings")} /> */}
+      <IconHome24
+        class={`${styles.navItem} ${currentTab === "home" ? styles.navActive : ""}`}
+        onClick={() => setTab("home")}
+      />
+      <IconLibrary24
+        class={`${styles.navItem} ${currentTab === "label" ? styles.navActive : ""}`}
+        onClick={() => setTab("label")}
+      />
     </div>
   );
 }

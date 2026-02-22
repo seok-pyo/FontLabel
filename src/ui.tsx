@@ -20,6 +20,8 @@ function Plugin() {
   const [labels, setLabels] = useState<Label[]>([]);
   const [tab, setTab] = useState<"home" | "label" | "settings">("home");
 
+  const pendingTime = useRef<Record<string, number>>({});
+
   const previewsRef = useRef<Record<string, string>>({});
   const listenersRef = useRef<Map<string, Set<(url: string) => void>>>(
     new Map()
@@ -50,6 +52,7 @@ function Plugin() {
 
     if (previewsRef.current[key]) return;
     if (pendingQueue.current.includes(key)) return;
+    pendingTime.current[key] = performance.now();
     pendingQueue.current.push(key);
 
     parent.postMessage(
@@ -138,6 +141,10 @@ function Plugin() {
         // const start = performance.now();
 
         const { key, image } = e.data.pluginMessage;
+
+        const waited = performance.now() - pendingTime.current[key];
+        console.log(`대기 ${key}: ${waited.toFixed(0)}ms`);
+
         const blob = new Blob([image], {
           type: "image/svg+xml",
         });
@@ -211,7 +218,7 @@ function Plugin() {
         />
       )}
       {tab === "settings" && <Settings />}
-      <Navigation setTab={setTab} />
+      <Navigation setTab={setTab} currentTab={tab} />
     </Fragment>
   );
 }

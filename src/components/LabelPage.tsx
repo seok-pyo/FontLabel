@@ -71,6 +71,16 @@ export default function LabelPage({
                   subscribePreview={subscribePreview}
                 />
               ))}
+              action={
+                <button
+                  class={styles.closeButton}
+                  onClick={() => {
+                    onDeleteFont(f, l.id);
+                  }}
+                >
+                  <IconClose16 />
+                </button>
+              }
             />
           ))}
           preIcon={
