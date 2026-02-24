@@ -30,6 +30,8 @@ export default function VirtualList({
 
   // 마운트 시 설정 === useEffect ?
   // containerRef.current === 실제 DOM ?
+
+  // 스크롤 위치 기억하기
   useEffect(() => {
     if (containerRef.current && initialScrollTop)
       containerRef.current.scrollTop = initialScrollTop;

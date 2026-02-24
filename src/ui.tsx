@@ -50,7 +50,7 @@ function Plugin() {
     const displayKey = text || `${family} ${style}`;
     const key = text ? `${family}` : `${family}::${style}`;
 
-    if (previewsRef.current[key]) return;
+    if (previewsRef.current[key]) return; // sub/pub 패턴 캐시
     if (pendingQueue.current.includes(key)) return;
     pendingTime.current[key] = performance.now();
     pendingQueue.current.push(key);

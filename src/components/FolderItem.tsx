@@ -33,6 +33,7 @@ export default function FolderItem({
   }, [previewKey]);
 
   useEffect(() => {
+    // FolderItem은 마운트 시에는 1번 requestPreview를 요청
     if (!requestPreview) return;
     requestPreview();
   }, []);
@@ -48,6 +49,7 @@ export default function FolderItem({
           {preIcon}
           {/* {title} */}
           {src ? <img src={src} style={{ height: "14px" }} /> : title}
+          {/* img src로 들어가는 데이터의 실제 형태를 확인 */}
           {sufIcon}
         </summary>
         {open && (
