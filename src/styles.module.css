@@ -180,10 +180,18 @@ details[open] > .summary > :first-child {
   justify-content: center;
 }
 
-/* .directory div[class*="menu"] {
-  max-height: 200px !important;
-  border-radius: 0 0 8px 8px;
-} */
+.navItem {
+  width: 36px;
+  height: 36px;
+  border-radius: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.navActive {
+  background-color: #2095f5;
+}
 
 .labelDefault:hover {
   cursor: pointer;

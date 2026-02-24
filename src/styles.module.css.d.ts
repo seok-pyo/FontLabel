@@ -11,6 +11,8 @@ declare const styles: {
   readonly "labelInput": string;
   readonly "makeLabel": string;
   readonly "nav": string;
+  readonly "navActive": string;
+  readonly "navItem": string;
   readonly "plusButton": string;
   readonly "plusOpen": string;
   readonly "popContainer": string;

@@ -2,10 +2,11 @@ import { Fragment, h } from "preact";
 import FontCard from "./FontCard";
 import styles from "../styles.module.css";
 import { IconPlus16 } from "@create-figma-plugin/ui";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useState, useMemo } from "preact/hooks";
 import LabelPop from "./LabelPop";
 import MakeLabel from "./MakeLabel";
 import FolderItem from "./FolderItem";
+import VirtualList from "./VirtualList";
 
 export default function Folder({
   fonts,
@@ -14,6 +15,8 @@ export default function Folder({
   labels,
   requestPreview,
   subscribePreview,
+  scrollTop,
+  onScrollChange,
 }: {
   fonts: Record<string, string[]>;
   onCreate: (name: string, color: string, font: string) => void;
@@ -21,9 +24,13 @@ export default function Folder({
   labels: { id: string; name: string; color: string; fonts: string[] }[];
   requestPreview: (family: string, style: string, text?: string) => void;
   subscribePreview: (key: string, cb: (url: string) => void) => void;
+  scrollTop: number;
+  onScrollChange: (top: number) => void;
 }) {
   const [fontInfo, setFontInfo] = useState("");
   const [mode, setMode] = useState<"makeLabel" | "viewLabel" | null>(null);
+  // fonts가 바뀔 때만 Object.entries를 다시 실행
+  const fontEntries = useMemo(() => Object.entries(fonts), [fonts]);
 
   const onSelect = (option: string) => {
     if (option === "Make a Label") {
@@ -58,10 +65,17 @@ export default function Folder({
   }, []);
 
   return (
-    <Fragment>
-      {Object.entries(fonts).map(([family, style]) => (
-        <div key={family} class={styles.fontListContainer}>
+    <VirtualList
+      itemCount={fontEntries.length}
+      itemHeight={36}
+      containerHeight={440}
+      initialScrollTop={scrollTop}
+      onScrollChange={onScrollChange}
+      renderItem={(index) => {
+        const [family, style] = fontEntries[index];
+        return (
           <FolderItem
+            key={family}
             title={family}
             count={style.length}
             previewKey={`${family}`}
@@ -145,8 +159,8 @@ export default function Folder({
               </Fragment>
             }
           />
-        </div>
-      ))}
-    </Fragment>
+        );
+      }}
+    />
   );
 }

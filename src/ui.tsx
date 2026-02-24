@@ -20,13 +20,14 @@ function Plugin() {
   const [labels, setLabels] = useState<Label[]>([]);
   const [tab, setTab] = useState<"home" | "label" | "settings">("home");
 
+  const pendingTime = useRef<Record<string, number>>({});
+
   const previewsRef = useRef<Record<string, string>>({});
   const listenersRef = useRef<Map<string, Set<(url: string) => void>>>(
     new Map()
   );
 
-  console.log(listenersRef);
-  console.log(listenersRef.current);
+  const scrollTopRef = useRef(0);
 
   const subscribePreview = (key: string, callback: (url: string) => void) => {
     if (!listenersRef.current.has(key)) {
@@ -49,8 +50,9 @@ function Plugin() {
     const displayKey = text || `${family} ${style}`;
     const key = text ? `${family}` : `${family}::${style}`;
 
-    if (previewsRef.current[key]) return;
+    if (previewsRef.current[key]) return; // sub/pub 패턴 캐시
     if (pendingQueue.current.includes(key)) return;
+    pendingTime.current[key] = performance.now();
     pendingQueue.current.push(key);
 
     parent.postMessage(
@@ -124,7 +126,7 @@ function Plugin() {
     window.onmessage = (e) => {
       if (e.data.pluginMessage.type === "fonts") {
         const fontData = e.data.pluginMessage.fonts;
-        setFonts(fontData);
+        setFonts(fontData); // setFonts를 하게 되면 렌더링이 진행되므로, 렌더링 시간에 포함.
         requestAnimationFrame(() => {
           console.log(
             `[초기 로딩 시간] ${(performance.now() - start).toFixed(1)}ms`
@@ -139,6 +141,10 @@ function Plugin() {
         // const start = performance.now();
 
         const { key, image } = e.data.pluginMessage;
+
+        const waited = performance.now() - pendingTime.current[key];
+        console.log(`대기 ${key}: ${waited.toFixed(0)}ms`);
+
         const blob = new Blob([image], {
           type: "image/svg+xml",
         });
@@ -194,6 +200,10 @@ function Plugin() {
           labels={labels}
           onAddToLabel={onAddToLabel}
           subscribePreview={subscribePreview}
+          scrollTop={scrollTopRef.current}
+          onScrollChange={(top) => {
+            scrollTopRef.current = top;
+          }}
         />
       )}
       {tab === "label" && (
@@ -208,7 +218,7 @@ function Plugin() {
         />
       )}
       {tab === "settings" && <Settings />}
-      <Navigation setTab={setTab} />
+      <Navigation setTab={setTab} currentTab={tab} />
     </Fragment>
   );
 }

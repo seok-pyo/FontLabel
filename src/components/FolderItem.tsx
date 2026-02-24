@@ -24,7 +24,6 @@ export default function FolderItem({
   subscribePreview?: (key: string, cb: (url: string) => void) => void;
   requestPreview?: () => void;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
   const [src, setSrc] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -34,20 +33,13 @@ export default function FolderItem({
   }, [previewKey]);
 
   useEffect(() => {
-    if (!ref.current) return;
-    if (!ref.current || !requestPreview) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) requestPreview();
-      },
-      { threshold: 0.1 }
-    );
-    observer.observe(ref.current);
-    return () => observer.disconnect();
+    // FolderItem은 마운트 시에는 1번 requestPreview를 요청
+    if (!requestPreview) return;
+    requestPreview();
   }, []);
 
   return (
-    <div class={styles.fontListContainer} ref={ref}>
+    <div class={styles.fontListContainer}>
       <details
         class={styles.fontList}
         onToggle={(e) => setOpen(e.currentTarget.open)}
@@ -55,7 +47,9 @@ export default function FolderItem({
         <summary class={styles.summary} style={{ fontFamily: title }}>
           <IconChevronRight16 />
           {preIcon}
+          {/* {title} */}
           {src ? <img src={src} style={{ height: "14px" }} /> : title}
+          {/* img src로 들어가는 데이터의 실제 형태를 확인 */}
           {sufIcon}
         </summary>
         {open && (
