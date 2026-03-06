@@ -116,8 +116,6 @@ function Plugin() {
   };
 
   useEffect(() => {
-    const start = performance.now();
-
     window.onmessage = (e) => {
       const msg = e.data?.pluginMessage;
       if (!msg) return;
@@ -132,8 +130,6 @@ function Plugin() {
 
       if (msg.type === "preview") {
         const { key, image } = e.data.pluginMessage;
-
-        const waited = performance.now() - pendingTime.current[key];
 
         const blob = new Blob([image], {
           type: "image/svg+xml",

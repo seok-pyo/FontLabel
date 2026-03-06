@@ -1,11 +1,10 @@
 import { h } from "preact";
-import { useRef, useEffect, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { IconChevronRight16 } from "@create-figma-plugin/ui";
 import styles from "../styles.module.css";
 
 export default function FolderItem({
   title,
-  count,
   items,
   preIcon,
   sufIcon,
@@ -49,7 +48,14 @@ export default function FolderItem({
           {preIcon}
           {/* {title} */}
           {src ? (
-            <img src={src} style={{ height: "14px", maxWidth: "calc(100% - 40px)", objectFit: "contain" }} />
+            <img
+              src={src}
+              style={{
+                height: "14px",
+                maxWidth: "calc(100% - 40px)",
+                objectFit: "contain",
+              }}
+            />
           ) : (
             title
           )}
