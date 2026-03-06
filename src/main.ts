@@ -1,9 +1,17 @@
 import { showUI } from "@create-figma-plugin/utilities";
 
+interface PreviewRequest {
+  type: string;
+  family: string;
+  style: string;
+  text: string;
+  key: string;
+}
+
 export default async function () {
   showUI({ width: 365, height: 480 });
 
-  const previewQueue: any[] = [];
+  const previewQueue: PreviewRequest[] = [];
   let processing = false;
 
   const tempPage = figma.createPage();
@@ -25,25 +33,16 @@ export default async function () {
           const node = figma.createText();
           tempPage.appendChild(node);
           try {
-            const start = Date.now();
-
-            const t1 = Date.now();
             await figma.loadFontAsync({ family: msg.family, style: msg.style });
-            // console.log(`[loadFont] ${msg.family}: ${Date.now() - t1}ms`);
 
             node.fontName = { family: msg.family, style: msg.style };
             node.characters = msg.text || msg.family;
             node.fontSize = 14;
             node.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
 
-            const t2 = Date.now();
-
             const bytes = await node.exportAsync({
               format: "SVG",
             });
-
-            // console.log(`[exportSVG] ${msg.family}: ${Date.now() - t2}ms`);
-            // console.log(`[total] ${msg.family}: ${Date.now() - start}ms`);
 
             if (bytes.length < 100) return;
 
@@ -60,9 +59,8 @@ export default async function () {
               key: msg.key,
               image: svgString,
             });
-            // console.log(`${msg.family}`, Date.now() - start);
           } catch (e) {
-            // console.log(`[error] ${msg.family}: ${e}`);
+            console.log(`[error] ${msg.family}: ${e}`);
           } finally {
             node.remove();
           }
