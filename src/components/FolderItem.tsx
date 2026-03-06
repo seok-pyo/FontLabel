@@ -48,8 +48,11 @@ export default function FolderItem({
           <IconChevronRight16 />
           {preIcon}
           {/* {title} */}
-          {src ? <img src={src} style={{ height: "14px" }} /> : title}
-          {/* img src로 들어가는 데이터의 실제 형태를 확인 */}
+          {src ? (
+            <img src={src} style={{ height: "14px", maxWidth: "calc(100% - 40px)", objectFit: "contain" }} />
+          ) : (
+            title
+          )}
           {sufIcon}
         </summary>
         {open && (

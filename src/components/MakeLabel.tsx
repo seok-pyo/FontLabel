@@ -37,6 +37,7 @@ export default function MakeLabel({
           selectedColor={color}
         />
         <button
+          disabled={!name.trim()}
           onClick={() => {
             onCreate(name, color || "#E5E5E5");
           }}

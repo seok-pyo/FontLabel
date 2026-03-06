@@ -1,7 +1,7 @@
 {
   "name": "FontLabel",
   "version": "1.0.0",
-  "description": "Your Figma Plugin",
+  "description": "Discover and organize fonts with color labels in Figma",
   "main": "code.js",
   "scripts": {
     "build": "build-figma-plugin --typecheck --minify",
@@ -18,7 +18,7 @@
     "ui": "src/ui.tsx"
   },
   "author": "hongseokpyo",
-  "license": "",
+  "license": "MIT",
   "devDependencies": {
     "@create-figma-plugin/build": "^4.0.3",
     "@create-figma-plugin/tsconfig": "^4.0.3",
