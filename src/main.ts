@@ -9,6 +9,10 @@ export default async function () {
   const tempPage = figma.createPage();
   tempPage.name = "__temp__";
 
+  figma.on("close", () => {
+    tempPage.remove();
+  });
+
   const processQueue = async () => {
     if (processing) return;
     const BATCH_SIZE = 13;

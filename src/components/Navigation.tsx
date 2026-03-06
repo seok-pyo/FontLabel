@@ -1,9 +1,4 @@
-import {
-  IconAdjust24,
-  IconFolder24,
-  IconHome24,
-  IconLibrary24,
-} from "@create-figma-plugin/ui";
+import { IconHome24, IconLibrary24 } from "@create-figma-plugin/ui";
 import { h } from "preact";
 import styles from "../styles.module.css";
 
@@ -17,11 +12,15 @@ export default function Navigation({
   return (
     <div class={styles.nav}>
       <IconHome24
-        class={`${styles.navItem} ${currentTab === "home" ? styles.navActive : ""}`}
+        class={`${styles.navItem} ${
+          currentTab === "home" ? styles.navActive : ""
+        }`}
         onClick={() => setTab("home")}
       />
       <IconLibrary24
-        class={`${styles.navItem} ${currentTab === "label" ? styles.navActive : ""}`}
+        class={`${styles.navItem} ${
+          currentTab === "label" ? styles.navActive : ""
+        }`}
         onClick={() => setTab("label")}
       />
     </div>

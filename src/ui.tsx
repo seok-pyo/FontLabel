@@ -6,13 +6,7 @@ import Folder from "./components/Folder";
 import Navigation from "./components/Navigation";
 import LabelPage from "./components/LabelPage";
 import Settings from "./components/Settings";
-
-interface Label {
-  id: string;
-  name: string;
-  color: string;
-  fonts: string[];
-}
+import { Label } from "./types";
 
 function Plugin() {
   const [value, setValue] = useState("");
@@ -44,16 +38,17 @@ function Plugin() {
     };
   };
 
-  const pendingQueue = useRef<string[]>([]);
+  // const pendingQueue = useRef<string[]>([]); // Array.includes는 배열을 처음부터 끝까지 순회하는 O(n) 연산. set으로 수정해준다.
+  const pendingQueue = useRef<Set<string>>(new Set());
 
   const requestPreview = (family: string, style: string, text?: string) => {
     const displayKey = text || `${family} ${style}`;
     const key = text ? `${family}` : `${family}::${style}`;
 
     if (previewsRef.current[key]) return; // sub/pub 패턴 캐시
-    if (pendingQueue.current.includes(key)) return;
+    if (pendingQueue.current.has(key)) return;
     pendingTime.current[key] = performance.now();
-    pendingQueue.current.push(key);
+    pendingQueue.current.add(key);
 
     parent.postMessage(
       {
@@ -124,39 +119,33 @@ function Plugin() {
     const start = performance.now();
 
     window.onmessage = (e) => {
-      if (e.data.pluginMessage.type === "fonts") {
+      const msg = e.data?.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === "fonts") {
         const fontData = e.data.pluginMessage.fonts;
         setFonts(fontData); // setFonts를 하게 되면 렌더링이 진행되므로, 렌더링 시간에 포함.
-        requestAnimationFrame(() => {
-          console.log(
-            `[초기 로딩 시간] ${(performance.now() - start).toFixed(1)}ms`
-          );
-        });
       }
-      if (e.data.pluginMessage.type === "labels") {
+      if (msg.type === "labels") {
         setLabels(e.data.pluginMessage.labels);
       }
 
-      if (e.data.pluginMessage.type === "preview") {
-        // const start = performance.now();
-
+      if (msg.type === "preview") {
         const { key, image } = e.data.pluginMessage;
 
         const waited = performance.now() - pendingTime.current[key];
-        console.log(`대기 ${key}: ${waited.toFixed(0)}ms`);
 
         const blob = new Blob([image], {
           type: "image/svg+xml",
         });
         const url = URL.createObjectURL(blob);
 
+        if (previewsRef.current[key]) {
+          URL.revokeObjectURL(previewsRef.current[key]);
+        }
+
         previewsRef.current[key] = url;
         listenersRef.current.get(key)?.forEach((cb) => cb(url));
-
-        // requestAnimationFrame(() => {
-        //   const elapsed = performance.now() - start;
-        //   console.log(`[UI Block] ${elapsed.toFixed(1)}`);
-        // });
       }
     };
 

@@ -5,13 +5,8 @@ import FolderItem from "./FolderItem";
 import FontCard from "./FontCard";
 import { useEffect, useState } from "preact/hooks";
 import MakeLabel from "./MakeLabel";
+import { Label } from "../types";
 
-interface Label {
-  id: string;
-  name: string;
-  color: string;
-  fonts: string[];
-}
 export default function LabelPage({
   labels,
   fonts,
@@ -51,7 +46,9 @@ export default function LabelPage({
           title={l.name}
           count={l.fonts.length}
           previewKey={`${l.name}`}
-          requestPreview={() => requestPreview(l.name, l.fonts[0])}
+          requestPreview={() => {
+            if (l.fonts.length > 0) requestPreview(l.name, l.fonts[0]);
+          }}
           subscribePreview={subscribePreview}
           items={l.fonts.map((f) => (
             <FolderItem
@@ -59,7 +56,10 @@ export default function LabelPage({
               title={f}
               count={fonts[f]?.length || 0}
               previewKey={`${f}`}
-              requestPreview={() => requestPreview(f, (fonts[f] || [])[0], f)}
+              requestPreview={() => {
+                const styles = fonts[f] || [];
+                if (styles.length > 0) requestPreview(f, styles[0], f);
+              }}
               subscribePreview={subscribePreview}
               items={(fonts[f] || []).map((style) => (
                 <FontCard
